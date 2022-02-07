@@ -10,8 +10,10 @@ a map of actions to commands.
 
 An action is passed to `blda` to have it execute the command.
 
+### Example
+
+In .blda
 ``` json
-// .blda
 {
   "build": "cmake --build build",
   "run": "./build/executable"
