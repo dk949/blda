@@ -1,6 +1,6 @@
 # Builder. Run build scripts anywhere in the project.
 
-Python script to execute build commands (or any other commands) from anywhere in
+Small script to execute build commands (or any other commands) from anywhere in
 your project as if you were in the project root directory.
 
 ## Usage
