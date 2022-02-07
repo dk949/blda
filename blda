@@ -1,0 +1,83 @@
+#!/usr/bin/env python
+import sys
+import json
+from pathlib import Path
+import os
+import subprocess as sp
+
+CFG_FILE = ".blda"
+
+
+def exitWithError(msg: str):
+    print(f"ERROR: {msg}", file=sys.stderr)
+    exit(1)
+
+
+def printHelp(msg: str | None = None):
+    if msg:
+        print(msg, file=sys.stderr, end="\n\n")
+    print("Usage: bldr [ACTION]", file=sys.stderr)
+    exit(1)
+
+
+def getAction() -> str:
+    if len(sys.argv) < 2:
+        printHelp()
+    action = None
+    for arg in sys.argv[1:]:
+        if arg.startswith('-'):
+            printHelp("Flags are not currently accepted")
+        if not action:
+            action = arg
+        else:
+            printHelp("Only one action can be used at once")
+
+    if not action:
+        printHelp("An action has to be specified")
+
+    return action
+
+
+def getRoot() -> str:
+    fsRoot = Path(Path(os.getcwd()).root)
+    path = Path(os.getcwd())
+    while path != fsRoot:
+        dir = os.listdir(path)
+        if CFG_FILE in map(lambda f: os.path.basename(f), dir):
+            return str(path)
+        path = path.parent
+    exitWithError(f"Could not find {CFG_FILE} in any parent directory")
+
+
+def readConfig(root: str) -> dict[str, str]:
+    with open(os.path.join(root, CFG_FILE), "r") as f:
+        try:
+            return json.loads(f.read())
+        except json.JSONDecodeError as e:
+            exitWithError(f"{CFG_FILE} appeas to not be valid JSON:\n\t{e}")
+
+
+def runAction(action: str, root: str, config: dict[str, str]):
+    if action in config:
+        try:
+            exit(sp.call(config[action].split(' '), cwd=root))
+        except FileNotFoundError as e:
+            exitWithError(
+                f"An error has occured when executing the action:\n\t{e}")
+
+    else:
+        exitWithError(f"{action} could not be found in {CFG_FILE}")
+
+
+def main():
+    action = getAction()
+    root = getRoot()
+    config = readConfig(root)
+    runAction(action, root, config)
+
+
+if __name__ == "__main__":
+    # try:
+    main()
+# except Exception as e:
+    # exitWithError(f"An unexpected exception has occured:\n\t{e}")
