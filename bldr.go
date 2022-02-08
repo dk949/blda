@@ -12,7 +12,15 @@ import "syscall"
 
 const CFG_FILE = ".bldr"
 
-func Map(vs []fs.FileInfo, f func(fs.FileInfo) string) []string {
+func fileInfoMap(vs []fs.FileInfo, f func(fs.FileInfo) string) []string {
+    vsm := make([]string, len(vs))
+    for i, v := range vs {
+        vsm[i] = f(v)
+    }
+    return vsm
+}
+
+func stringMap(vs []string, f func(string) string) []string {
     vsm := make([]string, len(vs))
     for i, v := range vs {
         vsm[i] = f(v)
@@ -77,7 +85,7 @@ func getRoot() string {
         if err != nil {
             exitWithError("Encounterederror reading directoy")
         }
-        if contains(Map(files, func(s fs.FileInfo) string { return s.Name() }), CFG_FILE) {
+        if contains(fileInfoMap(files, func(s fs.FileInfo) string { return s.Name() }), CFG_FILE) {
             return path
         }
         path = ppath
@@ -111,7 +119,12 @@ func readConfig(root string) map[string]interface{} {
 
 func runAction(action string, root string, config map[string]interface{}) {
     if val, ok := config[action]; ok {
-        args := strings.Fields(val.(string))
+        args := stringMap(strings.Fields(val.(string)), func(arg string) string {
+            if arg[0] == '$' {
+                return os.Getenv(arg[1:])
+            }
+            return arg
+        })
         cmd := exec.Command(args[0], args[1:]...)
         cmd.Dir = root
         cmd.Stdout = os.Stdout
