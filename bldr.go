@@ -49,28 +49,24 @@ func printHelp(msg string) {
     os.Exit(1)
 }
 
-func getAction() string {
+func getActions() []string {
     if len(os.Args) < 2 {
         printHelp("")
     }
 
-    var action string
+    var actions []string
 
     for _, arg := range os.Args[1:] {
         if arg[0] == '-' {
             printHelp("Flags are not currently accepted")
         }
-        if action == "" {
-            action = arg
-        } else {
-            printHelp("Only one action can be used at once")
-        }
+        actions = append(actions, arg)
     }
-    if action == "" {
-        printHelp("An action has to be specified")
+    if len(actions) == 0 {
+        printHelp("At least one action has to be specified")
     }
 
-    return action
+    return actions
 }
 
 func getRoot() string {
@@ -117,7 +113,7 @@ func readConfig(root string) map[string]interface{} {
     return result
 }
 
-func runAction(action string, root string, config map[string]interface{}) {
+func runAction(action string, root string, config map[string]interface{}) int {
     if val, ok := config[action]; ok {
         args := stringMap(strings.Fields(val.(string)), func(arg string) string {
             if arg[0] == '$' {
@@ -132,20 +128,29 @@ func runAction(action string, root string, config map[string]interface{}) {
         err := cmd.Run()
         if exiterr, ok := err.(*exec.ExitError); ok {
             if status, ok := exiterr.Sys().(syscall.WaitStatus); ok {
-                os.Exit(status.ExitStatus())
+                return status.ExitStatus()
             }
         } else {
-            os.Exit(0)
+            return 0
         }
     } else {
         exitWithError(fmt.Sprintf("%s could not be found in %s", action, CFG_FILE))
     }
+    return 0
+}
 
+func runActions(actions []string, root string, config map[string]interface{}) {
+    for _, action := range actions {
+        if status := runAction(action, root, config); status != 0 {
+            os.Exit(status)
+        }
+    }
+    os.Exit(0)
 }
 
 func main() {
-    action := getAction()
+    actions := getActions()
     root := getRoot()
     config := readConfig(root)
-    runAction(action, root, config)
+    runActions(actions, root, config)
 }
