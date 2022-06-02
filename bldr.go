@@ -124,7 +124,7 @@ func getActions() (ActionType, []string) {
 func getRoot() string {
     path, err := os.Getwd()
     if err != nil {
-        fmt.Println(err)
+        exitWithError(fmt.Sprint(err))
     }
     ppath := filepath.Dir(path)
 
@@ -198,7 +198,7 @@ func runAction(action string, root string, config map[string]interface{}) int {
                 return status.ExitStatus()
             }
         } else {
-            return 0
+            exitWithError(fmt.Sprintf("no such command %s", args[0]))
         }
     } else {
         exitWithError(fmt.Sprintf("%s could not be found in %s", action, CFG_FILE))
