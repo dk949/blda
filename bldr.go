@@ -12,7 +12,7 @@ import "strings"
 import "syscall"
 
 const CFG_FILE = ".bldr"
-const VERSION = "1.4.0"
+const VERSION = "1.4.1"
 
 type ActionType int
 
@@ -193,6 +193,9 @@ func runAction(action string, root string, config map[string]interface{}) int {
         cmd.Stdout = os.Stdout
         cmd.Stderr = os.Stderr
         err := cmd.Run()
+        if err == nil {
+            return 0
+        }
         if exiterr, ok := err.(*exec.ExitError); ok {
             if status, ok := exiterr.Sys().(syscall.WaitStatus); ok {
                 return status.ExitStatus()

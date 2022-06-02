@@ -3,6 +3,7 @@ all: bldr
 
 bldr: bldr.go
 	go build -o bldr bldr.go
+	strip bldr
 
 
 clean:
