@@ -12,7 +12,7 @@ import "strings"
 import "syscall"
 
 const CFG_FILE = ".bldr"
-const VERSION = "1.4.1"
+const VERSION = "unknown"
 
 type ActionType int
 
@@ -81,7 +81,7 @@ func help() {
 }
 
 func version() {
-    fmt.Printf("%s, verison %s\n", progName(), VERSION)
+    fmt.Printf("%s\n", VERSION)
     os.Exit(0)
 }
 

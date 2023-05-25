@@ -1,7 +1,9 @@
 include config.mk
 all: bldr
 
+
 bldr: bldr.go
+	sed 's/^const VERSION =.*$$/const VERSION = "$(VERSION)"/' bldr.go -i
 	go build -o bldr bldr.go
 	strip bldr
 
